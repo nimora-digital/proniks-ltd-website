@@ -1,0 +1,5 @@
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';
+const files=fs.readdirSync('dist',{recursive:true}).filter(x=>x.endsWith('.html'));assert.equal(files.length,17);let checks=0;
+for(const file of files){const html=fs.readFileSync(path.join('dist',file),'utf8');assert.match(html,/<title>[^<]+<\/title>/);assert.match(html,/noindex,nofollow/);assert.equal((html.match(/<h1>/g)||[]).length,1);for(const [,url]of html.matchAll(/(?:href|src)="(\/[^"?]*)(?:\?[^\"]*)?"/g)){let target=path.join('dist',url);if(url.endsWith('/'))target=path.join(target,'index.html');assert.ok(fs.existsSync(target),`${file}: missing ${url}`);checks++}}
+assert.match(fs.readFileSync('assets/app.js','utf8'),/preventDefault/);assert.match(fs.readFileSync('dist/contact/index.html','utf8'),/data-demo-form="true"/);assert.match(fs.readFileSync('netlify.toml','utf8'),/publish = "dist"/);console.log(`PASS: ${files.length} pages, ${checks} local links/assets, headings, metadata, noindex, Netlify markup and configuration.`);
+
